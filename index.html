@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E-Pemilos SMAN 2 Kuningan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="assets/js/supabase.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-[#eef2f5] h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden flex flex-col">
+    <div id="loginView" class="fixed inset-0 w-full h-full z-50">
+        <div id="mainLoginBg" class="bg-login-image"></div>
+        <div class="bg-login-overlay"></div>
+        <div
+            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[clamp(300px,90vw,600px)] px-3 sm:px-6 z-20">
+            <div class="login-card p-4 sm:p-6 md:p-10 w-full relative overflow-hidden rounded-2xl">
+                <div class="text-center mb-4 sm:mb-6 md:mb-8">
+                    <div class="inline-flex items-center justify-center mb-2 sm:mb-3 md:mb-4 relative">
+                        <img id="loginLogo" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                            alt="Logo Instansi"
+                            class="w-[clamp(60px,15vw,100px)] h-[clamp(60px,15vw,100px)] object-contain logo-blend"
+                            onerror="this.style.display='none'; document.getElementById('loginLogoSvg').classList.remove('hidden');">
+                        <svg id="loginLogoSvg"
+                            class="w-[clamp(60px,15vw,100px)] h-[clamp(60px,15vw,100px)] hidden animate-fade-in drop-shadow-2xl"
+                            viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="50,5 92,36 76,86 24,86 8,36" fill="#1e3a8a" stroke="#fbbf24"
+                                stroke-width="3.5" stroke-linejoin="round" />
+                            <polygon points="50,9 88,38 73,82 27,82 12,38" fill="#0284c7" stroke="#ffffff"
+                                stroke-width="1" stroke-linejoin="round" />
+                            <polygon points="50,14 53,23 62,23 55,29 57,38 50,32 43,38 45,29 38,23 47,23"
+                                fill="#ffffff" />
+                            <text x="50" y="79" fill="#1e3a8a" font-size="5" font-weight="bold"
+                                text-anchor="middle">KUNINGAN</text>
+                        </svg>
+                    </div>
+                    <h1 class="text-[clamp(18px,4vw,26px)] font-bold text-white tracking-wide">
+                        E-Pemilos SMANDA</h1>
+                    <p class="text-[clamp(10px,2vw,14px)] text-slate-300 mt-1 sm:mt-2 px-1">
+                        Masuk menggunakan NIS / NIP / Kode dan Password<br>Yang ada pada Kartu Pemilih
+                    </p>
+                </div>
+                <form id="loginForm">
+                    <div id="loginStatusMsg"
+                        class="hidden mb-3 sm:mb-4 p-2 sm:p-3 rounded-xl text-[clamp(10px,2vw,13px)] text-left flex items-start gap-2 border">
+                        <i id="loginStatusIcon" class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+                        <span id="loginStatusText" class="line-clamp-3">Pesan status disini.</span>
+                    </div>
+                    <div class="mb-3 sm:mb-4 relative">
+                        <label
+                            class="block text-[clamp(9px,1.5vw,11px)] font-semibold text-slate-300 uppercase tracking-wider mb-2 ml-1">ID
+                            Pemilih</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-2 sm:pl-4 flex items-center pointer-events-none"><i
+                                    class="fas fa-user text-slate-400 text-[clamp(12px,2vw,16px)]"></i></div>
+                            <input type="text" id="username"
+                                class="glass-input w-full pl-8 sm:pl-11 pr-4 py-2 sm:py-2.5 md:py-3 rounded-xl text-[clamp(12px,2vw,16px)]"
+                                placeholder="Masukkan ID" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="mb-4 sm:mb-5 md:mb-6 relative">
+                        <label
+                            class="block text-[clamp(9px,1.5vw,11px)] font-semibold text-slate-300 uppercase tracking-wider mb-2 ml-1">Password</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-2 sm:pl-4 flex items-center pointer-events-none"><i
+                                    class="fas fa-lock text-slate-400 text-[clamp(12px,2vw,16px)]"></i></div>
+                            <input type="password" id="password"
+                                class="glass-input w-full pl-8 sm:pl-11 pr-10 sm:pr-12 py-2 sm:py-2.5 md:py-3 rounded-xl text-[clamp(12px,2vw,16px)]"
+                                placeholder="Masukkan Password" required>
+                            <button type="button" id="togglePasswordBtn"
+                                class="absolute inset-y-0 right-0 pr-2 sm:pr-4 flex items-center text-slate-400 hover:text-white focus:outline-none">
+                                <i class="fas fa-eye text-[clamp(12px,2vw,16px)]" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" id="submitBtn"
+                        class="btn-primary w-full text-white text-[clamp(11px,2vw,15px)] font-bold py-2.5 sm:py-3 md:py-3.5 px-4 rounded-xl flex justify-center items-center gap-2 mt-3 sm:mt-4 active:scale-95 transition-transform">
+                        <span id="btnText">Masuk</span>
+                        <i class="fas fa-arrow-right text-[clamp(11px,2vw,15px)]" id="btnIcon"></i>
+                        <svg id="loadingSpinner" class="animate-spin -ml-1 mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white hidden"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+            <div
+                class="text-center mt-4 sm:mt-6 md:mt-8 text-slate-400 text-[clamp(8px,1.5vw,11px)] font-medium tracking-widest">
+                &copy; 2026 SMAN 2 Kuningan | Developed by arnnon</div>
+        </div>
+    </div>
+
+    <!-- VOTING WIZARD VIEW -->
+    <!-- Voter View (Voting Wizard) -->
+    <div id="voterView" class="hidden fixed inset-0 w-full h-full z-50 overflow-hidden">
+        <!-- Background same as login -->
+        <div id="voterBg" class="bg-login-image"></div>
+        <div class="bg-login-overlay"></div>
+        <!-- Floating shapes -->
+        <div
+            class="absolute bg-blue-500 w-64 h-64 rounded-full blur-3xl opacity-20 top-[-10%] left-[-10%] pointer-events-none">
+        </div>
+        <div
+            class="absolute bg-purple-500 w-72 h-72 rounded-full blur-3xl opacity-20 bottom-[-10%] right-[-10%] pointer-events-none">
+        </div>
+        <div
+            class="absolute bg-indigo-500 w-48 h-48 rounded-full blur-3xl opacity-20 top-[40%] left-[60%] pointer-events-none">
+        </div>
+
+        <div class="relative z-10 w-full flex flex-col justify-center items-center p-4 sm:p-6 h-full">
+
+            <div class="w-full flex justify-between items-center mb-4 sm:mb-6 flex-none">
+                <div class="flex items-center gap-3">
+                    <img id="voterHeaderLogo" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
+                        alt="Logo" class="w-10 h-10 sm:w-12 sm:h-12 object-contain logo-blend" />
+                    <div>
+                        <h2 class="text-white font-bold text-lg sm:text-xl drop-shadow-md" id="voterHeaderSchool">SMAN 2
+                            Kuningan</h2>
+                        <p class="text-slate-300 text-[10px] sm:text-xs">Portal Pemilihan E-Pemilos</p>
+                    </div>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <span
+                        class="px-3 py-1 bg-white/10 border border-white/20 text-white rounded-full text-xs font-semibold mb-1 shadow-inner backdrop-blur-md">
+                        <i class="fas fa-user text-[10px] mr-1"></i> <span id="voterActiveName">Nama Pemilih</span>
+                    </span>
+                    <button onclick="logoutVoter()"
+                        class="text-rose-400 hover:text-rose-300 text-[10px] sm:text-xs font-semibold transition-colors">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Keluar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Wizard Container -->
+            <div
+                class="animated-border-wrapper shadow-2xl w-full rounded-2xl flex-1 flex flex-col min-h-0 overflow-hidden">
+                <div class="animated-border-inner p-4 sm:p-6 lg:p-8 w-full h-full flex flex-col">
+
+                    <!-- Scrollable Content (wizardContent) -->
+                    <div id="wizardContent"
+                        class="flex-1 overflow-y-auto custom-scroll flex flex-col items-center pr-2 w-full">
+                        <!-- Dynamic content injected here -->
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="mt-4 pt-4 border-t border-white/10 w-full flex items-center justify-between gap-2 sm:gap-4 flex-none"
+                        id="wizardActionButtons">
+                        <button id="wizardBackBtn" onclick="wizardBack()"
+                            class="px-3 sm:px-5 py-2 rounded-lg font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors invisible flex-none">
+                            <i class="fas fa-arrow-left mr-1 sm:mr-2"></i><span class="hidden sm:inline">Kembali</span>
+                        </button>
+
+                        <!-- Progress bar and step text -->
+                        <div class="flex-1 flex flex-col items-center justify-center min-w-0 px-2">
+                            <div class="text-center w-full max-w-xs text-[10px] sm:text-xs text-slate-400 font-bold uppercase tracking-wider mb-1.5"
+                                id="wizardStepInfo">
+                                <span>1 dari 2</span>
+                                <span id="wizardCurrentPositionName">Ketua OSIS</span>
+                            </div>
+                            <div class="w-full max-w-xs bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                <div id="wizardProgress"
+                                    class="h-full bg-gradient-to-r from-sky-400 to-blue-500 transition-all duration-500"
+                                    style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <button id="wizardNextBtn" onclick="wizardNext()"
+                            class="px-3 sm:px-5 py-2 rounded-lg font-bold bg-sky-600 hover:bg-sky-500 text-white transition-colors flex items-center gap-1 sm:gap-2 flex-none">
+                            Lanjut <i class="fas fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL MODAL -->
+    <div id="customModal"
+        class="modal-overlay fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-4">
+        <div
+            class="modal-content w-full max-w-sm bg-[#0f172a] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-5 sm:p-6">
+                <h3 id="customModalTitle" class="text-lg font-bold text-white mb-3"></h3>
+                <div id="customModalBody" class="text-slate-300 text-sm mb-5"></div>
+                <div class="flex gap-3 justify-end">
+                    <button id="modalBtnCancel"
+                        class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-sm font-semibold transition-all">Batal</button>
+                    <button id="modalBtnConfirm"
+                        class="px-5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-sm font-bold transition-all">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Visi Misi Responsive Modal -->
+    <div id="visiMisiModal"
+        class="modal-overlay fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-10">
+        <div
+            class="animated-border-wrapper shadow-2xl w-full h-full max-h-[90vh] md:max-w-4xl rounded-2xl modal-content flex flex-col">
+            <div
+                class="animated-border-inner p-5 sm:p-8 w-full h-full flex flex-col bg-slate-900/95 backdrop-blur-xl relative">
+                <div class="flex justify-between items-center mb-6 flex-none border-b border-white/10 pb-4">
+                    <h3 class="text-xl sm:text-2xl lg:text-3xl font-black text-white" id="visiMisiModalTitle">Visi &amp;
+                        Misi</h3>
+                    <button onclick="document.getElementById('visiMisiModal').classList.remove('active')"
+                        class="text-slate-400 hover:text-white hover:bg-white/10 w-10 h-10 rounded-full flex items-center justify-center transition-all">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scroll pr-2 text-left" id="visiMisiModalBody">
+                    <!-- Content injected here -->
+                </div>
+                <div class="mt-6 pt-4 border-t border-white/10 flex justify-end flex-none">
+                    <button onclick="document.getElementById('visiMisiModal').classList.remove('active')"
+                        class="px-8 py-3 rounded-xl font-bold bg-sky-600 hover:bg-sky-500 text-white transition-all shadow-lg hover:shadow-sky-500/30">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginAlertBox" class="alert-box"></div>
+
+    <script>
+        // === SHARED GLOBALS (digunakan auth.js) ===
+        const DEFAULT_SYSTEM_SETTINGS = {
+            schoolName: "SMA Negeri 2 Kuningan",
+            examTitle: "E-Pemilos OSIS & DPK 2026",
+            schoolLogo: "https://iili.io/B5MMKiX.png",
+            loginBg: "https://iili.io/CxZmIkP.jpg"
+        };
+        const AppStorage = {
+            memoryData: {},
+            get(key) { try { return localStorage.getItem(key) || this.memoryData[key]; } catch (e) { return this.memoryData[key]; } },
+            set(key, value) { this.memoryData[key] = value; try { localStorage.setItem(key, value); } catch (e) { } }
+        };
+        const UI = {
+            alert: document.getElementById('loginAlertBox'),
+            viewLogin: document.getElementById('loginView'),
+            viewAdmin: null,
+            form: document.getElementById('loginForm'),
+            userInput: document.getElementById('username'),
+            passInput: document.getElementById('password'),
+            btnSub: document.getElementById('submitBtn'),
+            btnTxt: document.getElementById('btnText'),
+            btnIco: document.getElementById('btnIcon'),
+            spin: document.getElementById('loadingSpinner'),
+            mod: document.getElementById('customModal'),
+            mTitle: document.getElementById('customModalTitle'),
+            mBody: document.getElementById('customModalBody'),
+            mCancel: document.getElementById('modalBtnCancel'),
+            mConfirm: document.getElementById('modalBtnConfirm'),
+            loginStatus: document.getElementById('loginStatusMsg'),
+            loginStatusTxt: document.getElementById('loginStatusText'),
+            loginStatusIco: document.getElementById('loginStatusIcon')
+        };
+        let modalCb = null;
+        function showModal(title, body, showCancel, btnText, callback) {
+            UI.mTitle.innerHTML = title; UI.mBody.innerHTML = body; UI.mConfirm.textContent = btnText || 'OK';
+            UI.mCancel.style.display = showCancel ? 'block' : 'none'; modalCb = callback;
+            UI.mod.classList.add('active');
+        }
+        UI.mCancel.onclick = () => { UI.mod.classList.remove('active'); };
+        UI.mConfirm.onclick = () => { if (modalCb) modalCb(); UI.mod.classList.remove('active'); };
+        function showAlert(msg, isOk) {
+            const el = UI.alert; if (!el) return;
+            el.textContent = msg;
+            el.className = 'alert-box ' + (isOk ? 'alert-success' : 'alert-error');
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+        function setLoginStatus(msg, isOk) {
+            const el = UI.loginStatus; if (!el) return;
+            el.classList.remove('hidden', 'border-green-500/50', 'bg-green-900/30', 'text-green-300', 'border-red-500/50', 'bg-red-900/30', 'text-red-300');
+            if (isOk) { el.classList.add('border-green-500/50', 'bg-green-900/30', 'text-green-300'); UI.loginStatusIco.className = 'fas fa-check-circle mt-0.5'; }
+            else { el.classList.add('border-red-500/50', 'bg-red-900/30', 'text-red-300'); UI.loginStatusIco.className = 'fas fa-exclamation-circle mt-0.5'; }
+            UI.loginStatusTxt.textContent = msg;
+        }
+        function resetBtn() {
+            UI.btnSub.disabled = false; UI.btnSub.classList.remove('opacity-80', 'cursor-not-allowed');
+            UI.btnTxt.textContent = 'Masuk'; UI.btnIco.classList.remove('hidden'); UI.spin.classList.add('hidden');
+        }
+        async function resolveImage(idOrUrl) {
+            if (!idOrUrl) return null;
+            if (idOrUrl.startsWith('http') || idOrUrl.startsWith('data:')) return idOrUrl;
+
+            // Cek local storage
+            let localData = AppStorage.get('img_' + idOrUrl);
+            if (localData) return localData;
+
+            const localBgId = AppStorage.get('ep_login_bg');
+            const localBgData = AppStorage.get('ep_login_bg_data');
+            if (idOrUrl === localBgId && localBgData) {
+                AppStorage.set('img_' + idOrUrl, localBgData);
+                return localBgData;
+            }
+
+            const localLogoId = AppStorage.get('ep_sh_logo');
+            const localLogoData = AppStorage.get('ep_sh_logo_data');
+            if (idOrUrl === localLogoId && localLogoData) {
+                AppStorage.set('img_' + idOrUrl, localLogoData);
+                return localLogoData;
+            }
+
+            try {
+                const { data, error } = await db.from('images').select('data').eq('id', idOrUrl).single();
+                if (!error && data) {
+                    AppStorage.set('img_' + idOrUrl, data.data);
+                    return data.data;
+                }
+            } catch (e) { console.error("Error fetching image:", e); }
+            return null;
+        }
+        // Load background & logo dari pengaturan secara instan (tanpa loading blocking)
+        (async function () {
+            // 1. Tampilkan dari cache lokal / default secara instan
+            const initialName = AppStorage.get('ep_sh_name') || DEFAULT_SYSTEM_SETTINGS.schoolName;
+            document.querySelectorAll('.global-school-name').forEach(el => el.textContent = initialName);
+
+            const initialBgId = AppStorage.get('ep_login_bg') || DEFAULT_SYSTEM_SETTINGS.loginBg;
+            const bgEl = document.getElementById('mainLoginBg');
+            const voterBgEl = document.getElementById('voterBg');
+            const cachedBgData = AppStorage.get('img_' + initialBgId) || (initialBgId.startsWith('http') || initialBgId.startsWith('data:') ? initialBgId : DEFAULT_SYSTEM_SETTINGS.loginBg);
+            if (bgEl && cachedBgData) bgEl.style.backgroundImage = `url('${cachedBgData}')`;
+            if (voterBgEl && cachedBgData) voterBgEl.style.backgroundImage = `url('${cachedBgData}')`;
+
+            const initialLogoId = AppStorage.get('ep_sh_logo') || DEFAULT_SYSTEM_SETTINGS.schoolLogo;
+            const logoEl = document.getElementById('loginLogo');
+            const cachedLogoData = AppStorage.get('img_' + initialLogoId) || (initialLogoId.startsWith('http') || initialLogoId.startsWith('data:') ? initialLogoId : DEFAULT_SYSTEM_SETTINGS.schoolLogo);
+            if (logoEl && cachedLogoData) logoEl.src = cachedLogoData;
+
+            // 2. Lakukan sinkronisasi ke cloud di background (asinkron)
+            try {
+                const { data, error } = await db.from('pengaturan').select('*').eq('id', 'konfigurasi_aplikasi').single();
+                if (!error && data) {
+                    const nameChanged = data.school_name !== AppStorage.get('ep_sh_name');
+                    const bgChanged = data.login_bg !== AppStorage.get('ep_login_bg');
+                    const logoChanged = data.school_logo !== AppStorage.get('ep_sh_logo');
+
+                    if (data.school_name) AppStorage.set('ep_sh_name', data.school_name);
+                    if (data.exam_title) AppStorage.set('ep_ex_title', data.exam_title);
+                    if (data.school_logo) AppStorage.set('ep_sh_logo', data.school_logo);
+                    if (data.login_bg) AppStorage.set('ep_login_bg', data.login_bg);
+                    if (data.login_bg_data) AppStorage.set('ep_login_bg_data', data.login_bg_data);
+
+                    // Perbarui DOM hanya jika ada perubahan konfigurasi
+                    if (nameChanged && data.school_name) {
+                        document.querySelectorAll('.global-school-name').forEach(el => el.textContent = data.school_name);
+                    }
+                    if (bgChanged && data.login_bg) {
+                        const bgUrl = await resolveImage(data.login_bg);
+                        if (bgUrl) {
+                            if (bgEl) bgEl.style.backgroundImage = `url('${bgUrl}')`;
+                            if (voterBgEl) voterBgEl.style.backgroundImage = `url('${bgUrl}')`;
+                        }
+                    }
+                    if (logoChanged && data.school_logo) {
+                        const logoUrl = await resolveImage(data.school_logo);
+                        if (logoUrl) {
+                            if (logoEl) logoEl.src = logoUrl;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn("Gagal menyinkronkan konfigurasi cloud di index:", err);
+            }
+        })();
+    </script>
+    <script src="assets/js/auth.js"></script>
+</body>
+
+</html>
