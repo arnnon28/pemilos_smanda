@@ -1183,14 +1183,30 @@ async function downloadVoterCardsPdf() {
         return;
     }
     showAlert("Sedang mempersiapkan kartu PDF...", true);
+    const logoEl = document.getElementById('headerLogo');
+    let logoDataUrl = null;
+    const ballotBoxUrl = 'https://iili.io/Cu7VhhJ.png';
+    const preloadImage = (url) => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
+            img.src = url;
+        });
+    };
+    const ballotBoxImg = await preloadImage(ballotBoxUrl);
+    if (logoEl && logoEl.src && !logoEl.src.includes('base64,R0lGODlhAQABAAD')) {
+        logoDataUrl = logoEl.src;
+    }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
     const kartuLebar = 85.6;
-    const kartuTinggi = 53.98;
-    const marginX = 10;
-    const marginY = 10;
-    const posXAwal = 15;
-    const posYAwal = 15;
+    const kartuTinggi = 50;
+    const marginX = 8;
+    const marginY = 6;
+    const posXAwal = 15.4;
+    const posYAwal = 10;
     let posX = posXAwal;
     let posY = posYAwal;
     let col = 0;
@@ -1215,6 +1231,49 @@ async function downloadVoterCardsPdf() {
         doc.setFillColor(34, 102, 170);
         doc.roundedRect(posX, posY, kartuLebar, 14, 3, 3, 'F');
         doc.rect(posX, posY + 7, kartuLebar, 7, 'F');
+        
+        // Add School Logo on the left
+        if (logoDataUrl) {
+            try {
+                doc.addImage(logoDataUrl, 'PNG', posX + 3, posY + 2, 10, 10);
+            } catch (e) {
+                console.error("Failed to add school logo to PDF card:", e);
+            }
+        }
+        
+        // Add Ballot Box (Kotak Suara) on the right
+        let addedBallotBox = false;
+        if (ballotBoxImg) {
+            try {
+                // Sized at 11x11 and positioned at posY + 1.5 to visually match the school logo
+                doc.addImage(ballotBoxImg, 'PNG', posX + kartuLebar - 14, posY + 1.5, 11, 11);
+                addedBallotBox = true;
+            } catch (e) {
+                console.error("Failed to add ballot box image, falling back to vector:", e);
+            }
+        }
+        if (!addedBallotBox) {
+            const boxX = posX + kartuLebar - 14;
+            const boxY = posY + 1.5;
+            const boxW = 11;
+            const boxH = 11;
+            doc.setDrawColor(255, 255, 255);
+            doc.setFillColor(34, 102, 170);
+            doc.setLineWidth(0.4);
+            doc.rect(boxX + 1.1, boxY + 4.4, boxW - 2.2, boxH - 5.5, 'FD'); // Box body
+            doc.rect(boxX, boxY + 3.3, boxW, 1.3, 'FD'); // Box lid
+            doc.setDrawColor(34, 102, 170);
+            doc.setLineWidth(0.3);
+            doc.line(boxX + 2.2, boxY + 3.9, boxX + boxW - 2.2, boxY + 3.9); // Slot line
+            doc.setFillColor(255, 255, 255);
+            doc.setDrawColor(255, 255, 255);
+            doc.rect(boxX + 3.5, boxY + 0.5, boxW - 7, 2.8, 'FD'); // Ballot paper
+            doc.setDrawColor(220, 50, 50);
+            doc.setLineWidth(0.3);
+            doc.line(boxX + 4.6, boxY + 2.0, boxX + 5.3, boxY + 2.6); // Checkmark part 1
+            doc.line(boxX + 5.3, boxY + 2.6, boxX + 6.4, boxY + 1.1); // Checkmark part 2
+        }
+
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10.5);
         doc.setTextColor(255, 255, 255);
@@ -1234,11 +1293,19 @@ async function downloadVoterCardsPdf() {
             doc.setFont('helvetica', isBold ? 'bold' : 'normal');
             doc.setTextColor(valueColor[0], valueColor[1], valueColor[2]);
             doc.setFontSize(8);
-            doc.text(value, valX, textY);
+            
+            // split value if it's text to prevent overlapping with QR code
+            // max width is 36mm (valX is posX + 21, QR is at posX + 61.6, so 40.6mm max width, 36mm is safe)
+            const lines = doc.splitTextToSize(String(value), 36);
+            for (let i = 0; i < lines.length; i++) {
+                doc.text(lines[i], valX, textY);
+                if (i < lines.length - 1) {
+                    textY += 3.5;
+                }
+            }
             textY += 4.5;
         };
         let nameStr = record.nama || '-';
-        if (nameStr.length > 20) nameStr = nameStr.substring(0, 18) + '...';
         drawDataRow('Nama', nameStr, [10, 10, 10], true);
         const idLabel = activeVoterType === 'siswa' ? 'NIS' : (activeVoterType === 'guru' ? 'NIP' : 'Kode Staf');
         drawDataRow(idLabel, record.id, [10, 10, 10], true);
@@ -1249,7 +1316,7 @@ async function downloadVoterCardsPdf() {
         const voterPassword = record.password || defaultPass;
         drawDataRow('Password', voterPassword, [220, 50, 50], true);
         if (qrDataUrl) {
-            const qrSize = 29;
+            const qrSize = 20;
             const qrX = posX + kartuLebar - qrSize - 4;
             const qrY = posY + 15;
             doc.addImage(qrDataUrl, 'JPEG', qrX, qrY, qrSize, qrSize);
@@ -1270,7 +1337,7 @@ async function downloadVoterCardsPdf() {
         } else {
             posX += kartuLebar + marginX;
         }
-        if (rowCount === 4 && i < filteredRecords.length - 1) {
+        if (rowCount === 5 && i < filteredRecords.length - 1) {
             doc.addPage();
             posX = posXAwal;
             posY = posYAwal;
