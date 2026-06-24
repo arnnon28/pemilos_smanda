@@ -1871,15 +1871,6 @@ function exportPDF() {
         },
         headStyles: {
             fillColor: [44, 62, 80]
-        },
-        didParseCell: function (data) {
-            if (data.row.section === 'body' && data.row.index === data.table.body.length - 1) {
-                data.cell.styles.fillColor = [52, 152, 219];
-                data.cell.styles.textColor = [255, 255, 255];
-                if (data.column.index === 0) {
-                    data.cell.styles.fillColor = [41, 128, 185];
-                }
-            }
         }
     });
     doc.save('Laporan-Hasil-Pemilihan-SMANDA.pdf');
