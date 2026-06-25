@@ -1696,7 +1696,7 @@ function openCandidateModal(action = 'add', id = '') {
     document.getElementById('candidateActionType').value = action;
     if (action === 'add') {
         titleEl.textContent = "Tambah Kandidat Baru";
-        idInput.value = "";
+        idInput.value = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
         if (visiInput) visiInput.value = "";
         if (misiInput) misiInput.value = "";
         if (activePhotoText) activePhotoText.textContent = "ID_Default";
@@ -1736,8 +1736,15 @@ function processCandidatePhoto(event) {
     const photoPreview = document.getElementById('candidatePhotoPreview');
     const activePhotoText = document.getElementById('activeCandidatePhotoText');
     const maxDim = window.innerWidth || window.screen.width || 1280;
+    
+    let candidateId = document.getElementById('candidateIdInput').value;
+    if (!candidateId) {
+        candidateId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
+        document.getElementById('candidateIdInput').value = candidateId;
+    }
+    
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
-        const uniqueName = `kandidat_${shortId}.jpg`;
+        const uniqueName = `kandidat_${candidateId}.jpg`;
         window.tempCandidatePhoto = { id: uniqueName, data: base64Data };
         if (photoPreview) photoPreview.src = base64Data;
         if (activePhotoText) activePhotoText.textContent = uniqueName;
@@ -1787,10 +1794,8 @@ async function saveCandidate(e) {
                 updated_at: new Date().toISOString()
             });
         }
-        // Generate ID for new candidates
-        const docId = action === 'add'
-            ? (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2))
-            : id;
+        // Generate ID for new candidates or reuse existing
+        const docId = id || (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2));
         const saveData = {
             id: docId,
             nomor_urut: parseInt(noUrut) || 1,
