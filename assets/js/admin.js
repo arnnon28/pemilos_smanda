@@ -159,6 +159,9 @@ function compressImageToLimit(file, maxDimension, targetKb, callback) {
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
+                // Aktifkan smoothing kualitas tinggi agar foto tidak pecah / buram
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
                 ctx.drawImage(img, 0, 0, width, height);
                 quality = 0.90;
                 compressedBase64 = canvas.toDataURL('image/jpeg', quality);
@@ -170,7 +173,7 @@ function compressImageToLimit(file, maxDimension, targetKb, callback) {
                 }
             };
             performCompression();
-            while (sizeInKb > targetKb && currentMaxDimension > 200) {
+            while (sizeInKb > targetKb && currentMaxDimension > 300) {
                 currentMaxDimension = Math.round(currentMaxDimension * 0.8);
                 performCompression();
             }
@@ -189,7 +192,8 @@ function processLogoFile(event) {
     if (!file) return;
     UI.logoUploadStatus.textContent = "Sedang memproses logo...";
     UI.logoUploadStatus.className = "font-semibold text-yellow-600";
-    const maxDim = window.innerWidth || window.screen.width || 1280;
+    // Gunakan dimensi tetap yang ideal untuk logo agar tidak tergantung lebar layar perangkat admin
+    const maxDim = 800;
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
         const uniqueName = 'app_logo.jpg';
         window.tempUploadedLogo = { id: uniqueName, data: base64Data };
@@ -204,7 +208,8 @@ function processLoginBgFile(event) {
     if (!file) return;
     UI.bgUploadStatus.textContent = "Mengolah & mengkompresi gambar...";
     UI.bgUploadStatus.className = "font-semibold text-yellow-600";
-    const maxDim = window.innerWidth || window.screen.width || 1280;
+    // Gunakan dimensi tetap yang ideal untuk background agar tidak tergantung lebar layar perangkat admin
+    const maxDim = 1920;
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
         const uniqueName = `bg_${shortId}.jpg`;
         window.tempUploadedBg = { id: uniqueName, data: base64Data };
@@ -1735,7 +1740,8 @@ function processCandidatePhoto(event) {
     }
     const photoPreview = document.getElementById('candidatePhotoPreview');
     const activePhotoText = document.getElementById('activeCandidatePhotoText');
-    const maxDim = window.innerWidth || window.screen.width || 1280;
+    // Gunakan dimensi tetap yang ideal untuk foto kandidat agar tidak tergantung lebar layar perangkat admin
+    const maxDim = 1000;
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
         const uniqueName = `kandidat_${shortId}.jpg`;
         window.tempCandidatePhoto = { id: uniqueName, data: base64Data };
