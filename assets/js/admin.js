@@ -191,7 +191,7 @@ function processLogoFile(event) {
     UI.logoUploadStatus.className = "font-semibold text-yellow-600";
     const maxDim = window.innerWidth || window.screen.width || 1280;
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
-        const uniqueName = 'app_logo.jpg';
+        const uniqueName = shortId;
         window.tempUploadedLogo = { id: uniqueName, data: base64Data };
         if (UI.logoPreview) UI.logoPreview.src = base64Data;
         UI.logoUploadStatus.textContent = `Logo siap (Kompresi: ${sizeInKb} KB). Klik Simpan!`;
@@ -206,7 +206,7 @@ function processLoginBgFile(event) {
     UI.bgUploadStatus.className = "font-semibold text-yellow-600";
     const maxDim = window.innerWidth || window.screen.width || 1280;
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
-        const uniqueName = `bg_${shortId}.jpg`;
+        const uniqueName = shortId;
         window.tempUploadedBg = { id: uniqueName, data: base64Data };
         if (UI.bgPreview) UI.bgPreview.src = base64Data;
         UI.bgUploadStatus.textContent = `Background siap: ${uniqueName} (${sizeInKb} KB). Klik Simpan!`;
@@ -1744,7 +1744,7 @@ function processCandidatePhoto(event) {
     }
     
     compressImageToLimit(file, maxDim, 100, function (base64Data, shortId, sizeInKb) {
-        const uniqueName = `kandidat_${candidateId}.jpg`;
+        const uniqueName = shortId;
         window.tempCandidatePhoto = { id: uniqueName, data: base64Data };
         if (photoPreview) photoPreview.src = base64Data;
         if (activePhotoText) activePhotoText.textContent = uniqueName;
@@ -2410,7 +2410,7 @@ async function handleWordKandidatImport(event) {
                     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                     let shortId = '';
                     for (let j = 0; j < 10; j++) shortId += chars.charAt(Math.floor(Math.random() * chars.length));
-                    finalPhotoId = `kandidat_${shortId}.jpg`;
+                    finalPhotoId = shortId;
 
                     AppStorage.set('img_' + finalPhotoId, cand.tempImageData);
                     await db.from('images').upsert({
